@@ -2,7 +2,7 @@
 
 import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-export function LineChart({ feature, data }) {
+export function LineChart({ feature, data }: { feature: string; data: Array<{ Day: string; [key: string]: any }> }) {
   const chartData = data.map(item => ({
     name: item.Day,
     [feature]: item[feature]
