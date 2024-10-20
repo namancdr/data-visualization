@@ -50,7 +50,7 @@ export async function getFilteredData(ageGroup: string, gender: string, startDat
     params.push(formatDate(endDate));
   }
 
-  console.log('filters', params)
+  // console.log('filters', params)
 
   return db.all(query, params);
 }

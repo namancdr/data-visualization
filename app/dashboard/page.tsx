@@ -10,15 +10,25 @@ import { DatePickerWithRange } from '@/components/date-range-picker';
 import { useToast } from '@/hooks/use-toast';
 import { DateRange } from "react-day-picker";
 
+interface DataItem {
+  feature_a: number;
+  feature_b: number;
+  feature_c: number;
+  feature_d: number;
+  feature_e: number;
+  feature_f: number;
+  [key: string]: number;
+}
+
 export default function Dashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const { toast } = useToast();
-  const [data, setData] = useState([]);
-  const [selectedFeature, setSelectedFeature] = useState(null);
+  const [data, setData] = useState<DataItem[]>([]);
+  const [selectedFeature, setSelectedFeature] = useState<string | null>(null); // Update state type
   const [ageGroup, setAgeGroup] = useState('all');
   const [gender, setGender] = useState('all');
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({ from: undefined, to: undefined });
+  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined } | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -26,20 +36,14 @@ export default function Dashboard() {
       router.push('/login');
     }
   }, [status, router]);
-
   useEffect(() => {
-    fetchData();
-  }, [ageGroup, gender, dateRange]);
+    if (ageGroup || gender || dateRange) {
+      fetchData();
+    }
+  }, [ageGroup, gender, dateRange]); 
 
   const fetchData = async () => {
-    console.log({
-      filters: {
-        ageGroup,
-        gender,
-        startDate: dateRange.from,
-        endDate: dateRange.to,
-      }
-    })
+  
     setIsLoading(true);
     try {
       const response = await fetch('/api/data', {
@@ -48,8 +52,8 @@ export default function Dashboard() {
         body: JSON.stringify({
           ageGroup,
           gender,
-          startDate: dateRange.from,
-          endDate: dateRange.to
+          startDate: dateRange?.from ?? undefined,
+          endDate: dateRange?.to ?? undefined
         }),
       });
       if (response.ok) {
@@ -88,7 +92,7 @@ export default function Dashboard() {
     await signOut({ callbackUrl: '/login' });
   };
 
-  const prepareBarChartData = (data) => {
+  const prepareBarChartData = (data: DataItem[]) => {
     const features = ['feature_a', 'feature_b', 'feature_c', 'feature_d', 'feature_e', 'feature_f'];
     return features.map(feature => ({
       name: feature.replace('feature_', '').toUpperCase(),
@@ -96,7 +100,7 @@ export default function Dashboard() {
     }));
   };
 
-  const prepareLineChartData = (data, feature) => {
+  const prepareLineChartData = (data: DataItem[], feature: string) => {
     return data.map(item => ({
       day: new Date(item.day).getTime(),
       value: item[feature]
@@ -134,7 +138,7 @@ export default function Dashboard() {
             <SelectItem value="Female">Female</SelectItem>
           </SelectContent>
         </Select>
-        <DatePickerWithRange setDateRange={setDateRange} />
+        <DatePickerWithRange setDateRange={(range) => setDateRange(range.from && range.to ? { from: range.from, to: range.to } : undefined)} />
         <Button onClick={handleShareClick}>Share View</Button>
       </div>
       <div className="mb-8">
